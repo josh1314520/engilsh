@@ -21,7 +21,7 @@ def init_db():
         )
     ''')
     
-    # 2. 建立時態文法題庫表
+    # 2. 建立時態文法題庫表 (保留此表以確保混合特訓網頁正常運作)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS grammar_questions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,36 +45,41 @@ def seed_data():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 檢查 words 表是否已有資料
-    cursor.execute('SELECT COUNT(*) FROM words')
-    if cursor.fetchone()[0] == 0:
-        words_data = [
-            # Elementary 國小
-            ('apple', '蘋果', 'Elementary', '香蕉', '貓', '狗', 'apple 是蘋果。'),
-            ('elephant', '大象', 'Elementary', '獅子', '老虎', '猴子', 'elephant 是大象，字首是元音 e，常用 an elephant。'),
-            ('beautiful', '美麗的', 'Elementary', '醜陋的', '生氣的', '開心的', 'beautiful 形容美麗、漂亮的。'),
-            ('kitchen', '廚房', 'Elementary', '臥室', '客廳', '浴室', 'kitchen 是廚房，煮飯烹飪的地方。'),
-            ('school', '學校', 'Elementary', '公園', '醫院', '商店', 'school 是學校，學生上課學習的場所。'),
-            # Junior 國中
-            ('fabulous', '極好的', 'Junior', '糟糕的', '平凡的', '危險的', 'fabulous 表示極好的、絕佳的，常用來形容棒極了的人事物。'),
-            ('experience', '經驗', 'Junior', '實驗', '期待', '解釋', 'experience 名詞指經驗、體驗；動詞指經歷。'),
-            ('volcano', '火山', 'Junior', '地震', '颱風', '海嘯', 'volcano 指火山，是會噴發岩漿和火山灰的山。'),
-            ('influence', '影響', 'Junior', '流入', '流感', '資訊', 'influence 代表影響或影響力。'),
-            ('decide', '決定', 'Junior', '拒絕', '延期', '描述', 'decide 是動詞，表示決定、下決心。'),
-            # Senior 高中
-            ('phenomenon', '現象', 'Senior', '幻覺', '哲學', '奇蹟', 'phenomenon 指現象，複數形為 phenomena。'),
-            ('consequence', '後果', 'Senior', '序列', '巧合', '便利', 'consequence 意為（常指不好的）後果、結果。'),
-            ('artificial', '人工的', 'Senior', '藝術的', '真實的', '古代的', 'artificial 代表人工的、人造的，例如 Artificial Intelligence (人工智慧)。'),
-            ('simultaneous', '同時的', 'Senior', '相似的', '刺激的', '自發的', 'simultaneous 意為「同時發生的」、「同步的」。'),
-            ('procrastinate', '拖延', 'Senior', '宣告', '保護', '推廣', 'procrastinate 為動詞，表示拖延、延宕。')
-        ]
-        cursor.executemany('''
-            INSERT INTO words (word, definition, level, option1, option2, option3, analysis)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        ''', words_data)
-        print("Words table seeded successfully!")
+    # 清空以重新塞入體驗單字與其餘題庫，避免重複
+    cursor.execute("DELETE FROM words")
+    
+    words_data = [
+        # 體驗單字 (來自您的設定，包含詳細解析！)
+        ('apple', '蘋果', 'Elementary', '香蕉', '蓮霧', '西瓜', 
+         '【解析】apple (n.) 蘋果。例句：An apple a day keeps the doctor away.（一天一蘋果，醫生遠離我。）'),
+        ('beautiful', '美麗的', 'Junior', '醜陋的', '危險的', '方便的', 
+         '【解析】beautiful (adj.) 美麗的、漂亮的。由 beauty（美貌）加上形容詞字尾 -ful（充滿的）組合而成。'),
+        ('congratulate', '祝賀', 'Senior', '譴責', '忽略', '模仿', 
+         '【解析】congratulate (v.) 祝賀、慶賀。常用片語：congratulate someone on something（為某事向某人祝賀）。'),
+        
+        # 額外擴充單字 (豐富遊戲體驗)
+        ('elephant', '大象', 'Elementary', '獅子', '老虎', '猴子', '【解析】elephant (n.) 大象。字首是元音 e，前面常用 an elephant。'),
+        ('kitchen', '廚房', 'Elementary', '臥室', '客廳', '浴室', '【解析】kitchen (n.) 廚房。指用來烹飪和準備食物的房間。'),
+        ('school', '學校', 'Elementary', '公園', '醫院', '商店', '【解析】school (n.) 學校。指學生上課和受教育的場所。'),
+        ('fabulous', '極好的', 'Junior', '糟糕的', '平凡的', '危險的', '【解析】fabulous (adj.) 極好的、絕佳的，常用於稱讚棒極了的人事物。'),
+        ('experience', '經驗', 'Junior', '實驗', '期待', '解釋', '【解析】experience (n.) 經驗、體驗，代表從實踐中獲得的知識或技能。'),
+        ('volcano', '火山', 'Junior', '地震', '颱風', '海嘯', '【解析】volcano (n.) 火山。地殼中噴發岩漿和氣體的通道。'),
+        ('influence', '影響', 'Junior', '流入', '流感', '資訊', '【解析】influence (n./v.) 影響、影響力。'),
+        ('decide', '決定', 'Junior', '拒絕', '延期', '描述', '【解析】decide (v.) 決定，即在多種選擇中做出抉擇。'),
+        ('phenomenon', '現象', 'Senior', '幻覺', '哲學', '奇蹟', '【解析】phenomenon (n.) 現象。複數形為 phenomena。'),
+        ('consequence', '後果', 'Senior', '序列', '巧合', '便利', '【解析】consequence (n.) 後果，常指不好的結果。'),
+        ('artificial', '人工的', 'Senior', '藝術的', '真實的', '古代的', '【解析】artificial (adj.) 人工的、人造的，例如 Artificial Intelligence (AI)。'),
+        ('simultaneous', '同時的', 'Senior', '相似的', '刺激的', '自發的', '【解析】simultaneous (adj.) 同時發生的、同步的。'),
+        ('procrastinate', '拖延', 'Senior', '宣告', '保護', '推廣', '【解析】procrastinate (v.) 拖延、延宕事情。')
+    ]
+    
+    cursor.executemany('''
+        INSERT INTO words (word, definition, level, option1, option2, option3, analysis)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+    ''', words_data)
+    print("Words table seeded successfully with experience words!")
 
-    # 檢查 grammar_questions 表是否已有資料
+    # 檢查並植入時態文法題庫，以確保網頁功能正常
     cursor.execute('SELECT COUNT(*) FROM grammar_questions')
     if cursor.fetchone()[0] == 0:
         grammar_data = [
@@ -102,6 +107,7 @@ def seed_data():
 
     conn.commit()
     conn.close()
+    print("Database english_hero.db initialized successfully with experience words and grammar questions!")
 
 if __name__ == '__main__':
     # 如果已存在舊的資料庫，我們先將其刪除以重新套用新 Schema 和 Seed 資料
