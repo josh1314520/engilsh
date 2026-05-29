@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Hero - 專屬時態文法與單字混合特訓競技場</title>
+    <title>English Hero - 專屬單字特訓競技場</title>
     <!-- Meta SEO Tags -->
-    <meta name="description" content="個人專屬時態文法與單字混合特訓網頁，結合RPG冒險要素，讓你在打怪晉級的過程中輕鬆學習英文單字與文法時態！">
+    <meta name="description" content="個人專屬單字特訓網頁，結合RPG冒險要素，讓你在打怪晉級的過程中輕鬆學習英文單字！">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -17,9 +17,7 @@
                 ⚔️ English Hero <span>v1.0</span>
             </div>
             <nav aria-label="主要導覽">
-                <button class="nav-btn active" id="tabBtnArena" onclick="switchTab('arena')">特訓競技場</button>
-                <button class="nav-btn" id="tabBtnMgmt" onclick="switchTab('mgmt')">題庫管理</button>
-                <button class="nav-btn" id="tabBtnGuide" onclick="switchTab('guide')">學習指南</button>
+                <button class="nav-btn active" id="tabBtnArena">特訓競技場</button>
             </nav>
         </div>
     </header>
@@ -27,7 +25,7 @@
     <!-- Main Container -->
     <main>
 
-        <!-- 1. Arena Tab (特訓競技場) -->
+        <!-- Arena Tab (特訓競技場) -->
         <section id="tabArena" class="tab-content active">
             <!-- Stats Row -->
             <div class="arena-header">
@@ -78,39 +76,13 @@
             </div>
 
             <!-- Filter Controls -->
-            <div class="filter-controls">
+            <div class="filter-controls" style="justify-content: center;">
                 <div class="filter-group">
-                    <label for="filterMode">特訓模式</label>
-                    <select id="filterMode" onchange="loadNewQuestionSet()">
-                        <option value="mixed">混合特訓 (單字+文法)</option>
-                        <option value="vocab">單字特訓</option>
-                        <option value="grammar">時態文法特訓</option>
-                    </select>
-                </div>
-
-                <div class="filter-group" id="filterLevelGroup">
-                    <label for="filterLevel">單字難度</label>
-                    <select id="filterLevel" onchange="loadNewQuestionSet()">
-                        <option value="all">全部難度</option>
+                    <label for="filterLevel">單字特訓難度</label>
+                    <select id="filterLevel" onchange="loadNewQuestion()">
                         <option value="Elementary">Elementary (國小)</option>
                         <option value="Junior">Junior (國中)</option>
                         <option value="Senior">Senior (高中)</option>
-                    </select>
-                </div>
-
-                <div class="filter-group" id="filterTenseGroup" style="display: none;">
-                    <label for="filterTense">時態類型</label>
-                    <select id="filterTense" onchange="loadNewQuestionSet()">
-                        <option value="all">全部時態</option>
-                        <option value="Present Simple">Present Simple (現在簡單)</option>
-                        <option value="Past Simple">Past Simple (過去簡單)</option>
-                        <option value="Present Continuous">Present Continuous (現在進行)</option>
-                        <option value="Present Perfect">Present Perfect (現在完成)</option>
-                        <option value="Future Simple">Future Simple (未來簡單)</option>
-                        <option value="Past Continuous">Past Continuous (過去進行)</option>
-                        <option value="Past Perfect">Past Perfect (過去完成)</option>
-                        <option value="Passive Voice">Passive Voice (被動語態)</option>
-                        <option value="Conditional">Conditional (條件假設)</option>
                     </select>
                 </div>
             </div>
@@ -118,7 +90,7 @@
             <!-- Quiz Panel -->
             <div class="glass-panel">
                 <div class="question-container">
-                    <span class="question-category" id="questionCategory">MIXED</span>
+                    <span class="question-category" id="questionCategory">VOCAB</span>
                     <div class="question-prompt" id="questionPrompt">正在載入特訓題目...</div>
                     <div class="question-detail" id="questionDetail">...</div>
                 </div>
@@ -137,214 +109,9 @@
                         詳細解析內容...
                     </div>
                     <div class="action-controls">
-                        <button class="btn" id="nextQuestionBtn" onclick="nextQuestion()">
+                        <button class="btn" id="nextQuestionBtn" onclick="loadNewQuestion()">
                             進入下一關 ➔
                         </button>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 2. Management Tab (題庫管理) -->
-        <section id="tabMgmt" class="tab-content">
-            <div class="glass-panel">
-                <div class="mgmt-header">
-                    <div class="mgmt-title">📁 題庫管理中心</div>
-                    <div class="sub-tabs">
-                        <button class="sub-tab-btn active" id="subTabBtnWords" onclick="switchMgmtTab('words')">單字庫管理</button>
-                        <button class="sub-tab-btn" id="subTabBtnGrammar" onclick="switchMgmtTab('grammar')">文法題庫管理</button>
-                    </div>
-                </div>
-
-                <!-- Word Management -->
-                <div id="mgmtWordsSection">
-                    <!-- Add Word Form -->
-                    <div class="form-panel">
-                        <div class="form-title">➕ 新增特訓單字</div>
-                        <form id="addWordForm" onsubmit="submitWordForm(event)">
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="wordInput">英文單字 *</label>
-                                    <input type="text" id="wordInput" required placeholder="例如: challenge">
-                                </div>
-                                <div class="form-group">
-                                    <label for="definitionInput">中文意思 (正確選項) *</label>
-                                    <input type="text" id="definitionInput" required placeholder="例如: 挑戰">
-                                </div>
-                                <div class="form-group">
-                                    <label for="levelInput">單字難度 *</label>
-                                    <select id="levelInput" required>
-                                        <option value="Elementary">Elementary (國小)</option>
-                                        <option value="Junior">Junior (國中)</option>
-                                        <option value="Senior">Senior (高中)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="opt1Input">錯誤選項 1 *</label>
-                                    <input type="text" id="opt1Input" required placeholder="例如: 機會">
-                                </div>
-                                <div class="form-group">
-                                    <label for="opt2Input">錯誤選項 2 *</label>
-                                    <input type="text" id="opt2Input" required placeholder="例如: 改變">
-                                </div>
-                                <div class="form-group">
-                                    <label for="opt3Input">錯誤選項 3 *</label>
-                                    <input type="text" id="opt3Input" required placeholder="例如: 選擇">
-                                </div>
-                            </div>
-                            <div class="form-group full-width" style="margin-bottom: 1.2rem;">
-                                <label for="analysisInput">詳細解析 *</label>
-                                <textarea id="analysisInput" required placeholder="請輸入寫錯時展示給玩家的單字解析或例句..."></textarea>
-                            </div>
-                            <button type="submit" class="btn">新增單字</button>
-                        </form>
-                    </div>
-
-                    <!-- Words List Table -->
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>單字</th>
-                                    <th>正確意思</th>
-                                    <th>難度</th>
-                                    <th>其他選項</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="wordsTableBody">
-                                <!-- Dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Grammar Management -->
-                <div id="mgmtGrammarSection" style="display: none;">
-                    <!-- Add Grammar Form -->
-                    <div class="form-panel">
-                        <div class="form-title">➕ 新增文法特訓題</div>
-                        <form id="addGrammarForm" onsubmit="submitGrammarForm(event)">
-                            <div class="form-grid">
-                                <div class="form-group full-width">
-                                    <label for="gQuestionInput">文法題目 (使用 ___ 作為空格) *</label>
-                                    <input type="text" id="gQuestionInput" required placeholder="例如: Every morning, he ___ a cup of coffee.">
-                                </div>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="gCorrectInput">正確答案 *</label>
-                                    <input type="text" id="gCorrectInput" required placeholder="例如: drinks">
-                                </div>
-                                <div class="form-group">
-                                    <label for="gTenseInput">時態類型 *</label>
-                                    <select id="gTenseInput" required>
-                                        <option value="Present Simple">Present Simple (現在簡單)</option>
-                                        <option value="Past Simple">Past Simple (過去簡單)</option>
-                                        <option value="Present Continuous">Present Continuous (現在進行)</option>
-                                        <option value="Present Perfect">Present Perfect (現在完成)</option>
-                                        <option value="Future Simple">Future Simple (未來簡單)</option>
-                                        <option value="Past Continuous">Past Continuous (過去進行)</option>
-                                        <option value="Past Perfect">Past Perfect (過去完成)</option>
-                                        <option value="Passive Voice">Passive Voice (被動語態)</option>
-                                        <option value="Conditional">Conditional (條件假設)</option>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="form-grid">
-                                <div class="form-group">
-                                    <label for="gOpt1Input">錯誤選項 1 *</label>
-                                    <input type="text" id="gOpt1Input" required placeholder="例如: drink">
-                                </div>
-                                <div class="form-group">
-                                    <label for="gOpt2Input">錯誤選項 2 *</label>
-                                    <input type="text" id="gOpt2Input" required placeholder="例如: drinking">
-                                </div>
-                                <div class="form-group">
-                                    <label for="gOpt3Input">錯誤選項 3 *</label>
-                                    <input type="text" id="gOpt3Input" required placeholder="例如: drank">
-                                </div>
-                            </div>
-                            <div class="form-group full-width" style="margin-bottom: 1.2rem;">
-                                <label for="gAnalysisInput">文法詳細解析 *</label>
-                                <textarea id="gAnalysisInput" required placeholder="請輸入寫錯時展示給玩家的文法點解析..."></textarea>
-                            </div>
-                            <button type="submit" class="btn">新增題目</button>
-                        </form>
-                    </div>
-
-                    <!-- Grammar Questions List Table -->
-                    <div class="table-wrapper">
-                        <table>
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>題目</th>
-                                    <th>正確答案</th>
-                                    <th>時態</th>
-                                    <th>其他選項</th>
-                                    <th>操作</th>
-                                </tr>
-                            </thead>
-                            <tbody id="grammarTableBody">
-                                <!-- Dynamically filled -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 3. Learning Guide Tab (學習指南) -->
-        <section id="tabGuide" class="tab-content">
-            <div class="glass-panel" style="margin-bottom: 2rem;">
-                <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.8rem; margin-bottom: 1rem; text-align: center;">📖 英文核心文法時態指南</h2>
-                <p style="color: var(--text-muted); text-align: center; max-width: 600px; margin: 0 auto 2rem;">
-                    在競技場挑戰前，先來複習一下英文中最重要的基礎時態文法規則吧！
-                </p>
-                <div class="guide-container">
-                    <div class="guide-card">
-                        <div class="guide-card-title">⏳ 現在簡單式 (Present Simple)</div>
-                        <div class="guide-card-content">
-                            <p>用於表示常態、習慣、事實或真理。</p>
-                            <ul>
-                                <li><strong>主詞為單數第三人稱 (He/She/It)</strong>：動詞後面需加 -s 或 -es。</li>
-                                <li><em>例句</em>：Water boils at 100°C. (科學真理)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="guide-card">
-                        <div class="guide-card-title">⏮️ 過去簡單式 (Past Simple)</div>
-                        <div class="guide-card-content">
-                            <p>表示過去特定時間點已經完成的動作。</p>
-                            <ul>
-                                <li><strong>規則動詞</strong>字尾加 -ed，不規則動詞需背誦其過去式。</li>
-                                <li><em>例句</em>：Yesterday, they watched a movie. (過去事實)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="guide-card">
-                        <div class="guide-card-title">🔄 現在進行式 (Present Continuous)</div>
-                        <div class="guide-card-content">
-                            <p>表示當下正在進行的動作。</p>
-                            <ul>
-                                <li><strong>結構</strong>：主詞 + am/is/are + V-ing。</li>
-                                <li><em>例句</em>：Look! The birds are flying. (看！鳥兒正在飛翔)</li>
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="guide-card">
-                        <div class="guide-card-title">🏆 現在完成式 (Present Perfect)</div>
-                        <div class="guide-card-content">
-                            <p>表示過去發生的動作持續到現在，或者過去的經驗對現在產生的結果。</p>
-                            <ul>
-                                <li><strong>結構</strong>：主詞 + have/has + 過去分詞 (p.p.)。</li>
-                                <li><em>例句</em>：I have lived in Taipei since 2018. (動作持續至今)</li>
-                            </ul>
-                        </div>
                     </div>
                 </div>
             </div>
