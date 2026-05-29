@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>English Hero - 專屬單字特訓競技場</title>
+    <title>English Hero - 專屬時態文法特訓競技場</title>
     <!-- Meta SEO Tags -->
-    <meta name="description" content="個人專屬單字特訓網頁，結合RPG冒險要素，讓你在打怪晉級的過程中輕鬆學習英文單字！">
+    <meta name="description" content="個人專屬單字與文法時態特訓網頁，結合RPG冒險要素，讓你在打怪晉級的過程中輕鬆學習英文！">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
@@ -78,11 +78,11 @@
             <!-- Filter Controls -->
             <div class="filter-controls" style="justify-content: center;">
                 <div class="filter-group">
-                    <label for="filterLevel">單字特訓難度</label>
+                    <label for="filterLevel">特訓時態篩選</label>
                     <select id="filterLevel" onchange="loadNewQuestion()">
-                        <option value="Elementary">Elementary (國小)</option>
-                        <option value="Junior">Junior (國中)</option>
-                        <option value="Senior">Senior (高中)</option>
+                        <option value="現在">現在時態 (Present)</option>
+                        <option value="過去">過去時態 (Past)</option>
+                        <option value="未來">未來時態 (Future)</option>
                     </select>
                 </div>
             </div>
@@ -90,7 +90,7 @@
             <!-- Quiz Panel -->
             <div class="glass-panel">
                 <div class="question-container">
-                    <span class="question-category" id="questionCategory">VOCAB</span>
+                    <span class="question-category" id="questionCategory">時態特訓</span>
                     <div class="question-prompt" id="questionPrompt">正在載入特訓題目...</div>
                     <div class="question-detail" id="questionDetail">...</div>
                 </div>

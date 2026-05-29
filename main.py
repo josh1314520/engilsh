@@ -2,7 +2,9 @@ from flask import Flask, jsonify, request, render_template
 import sqlite3
 import random
 
-app = Flask(__name__)
+app = Flask(__name__, 
+            static_folder='static', 
+            template_folder='templates')
 
 def get_db_connection():
     conn = sqlite3.connect('english_hero.db')
@@ -16,10 +18,10 @@ def index():
 # API：撈取題目（隨機決定考單字還是考文法時態變化）
 @app.route('/api/get_question')
 def get_question():
-    level = request.args.get('level', 'Elementary')
+    level = request.args.get('level', '現在')  # 接收篩選時態 (現在/過去/未來)
     conn = get_db_connection()
     row = conn.execute(
-        'SELECT * FROM words WHERE level = ? ORDER BY RANDOM() LIMIT 1', 
+        'SELECT * FROM grammar_quiz WHERE tense_category = ? ORDER BY RANDOM() LIMIT 1', 
         (level,)
     ).fetchone()
     conn.close()
@@ -32,31 +34,31 @@ def get_question():
     
     if quiz_type == 'vocabulary':
         # 題型一：考中文意思
-        question_text = f"請問單字 【 {row['word']} 】 的中文意思是什麼？"
-        correct_answer = row['definition']
-        options = [row['definition'], row['option1'], row['option2'], row['option3']]
+        question_text = f"請問動詞 【 {row['verb_base']} 】 的中文意思是什麼？"
+        correct_answer = row['chinese_meaning']
+        
+        # 取得其他單字的中文意思作為干擾選項
+        conn = get_db_connection()
+        other_rows = conn.execute('SELECT chinese_meaning FROM grammar_quiz WHERE id != ?', (row['id'],)).fetchall()
+        conn.close()
+        
+        distractors = [r['chinese_meaning'] for r in other_rows if r['chinese_meaning'] != correct_answer]
+        
+        # 確保不重複且如果少於 3 個就用預設詞彙補足
+        fallback = ['學習', '看見', '跳舞', '歌唱', '飛翔', '睡覺', '玩耍']
+        for item in fallback:
+            if len(distractors) >= 3:
+                break
+            if item != correct_answer and item not in distractors:
+                distractors.append(item)
+                
+        # 隨機選出三個錯誤答案，並與正確答案組合
+        options = [correct_answer] + random.sample(distractors, 3)
     else:
         # 題型二：考文法時態與動詞變化
-        question_text = f"【文法時態題 - {row['grammar_type']}】<br><br>{row['sentence_q']}"
-        
-        # 根據不同的題目動態抓取正確答案
-        if row['grammar_type'] == '現在完成式':
-            correct_answer = row['verb_vpp']
-        elif row['grammar_type'] == '過去進行式':
-            # 這裡簡單依據主詞 Mary 加上 Be 動詞
-            correct_answer = f"was {row['verb_ing']}"
-        elif row['grammar_type'] == '未來完成式':
-            correct_answer = f"will have {row['verb_vpp']}"
-        else:
-            correct_answer = row['word']
-            
-        # 建立文法干擾選項（把原型、V-ing、V-pp 還有其他時態混在一起考你）
-        options = [
-            correct_answer, 
-            row['word'], 
-            row['verb_ing'], 
-            f"had {row['verb_vpp']}"
-        ]
+        question_text = f"【時態文法題 - {row['tense_category']}{row['aspect_category']}式】<br><br>{row['sentence_question']}"
+        correct_answer = row['correct_answer']
+        options = [row['correct_answer'], row['wrong_option1'], row['wrong_option2'], row['wrong_option3']]
         
     # 去除重複選項並打亂
     options = list(set(options))
@@ -78,7 +80,7 @@ def check_answer():
     quiz_type = data.get('quiz_type')
     
     conn = get_db_connection()
-    row = conn.execute('SELECT * FROM words WHERE id = ?', (word_id,)).fetchone()
+    row = conn.execute('SELECT * FROM grammar_quiz WHERE id = ?', (word_id,)).fetchone()
     conn.close()
     
     if not row:
@@ -86,23 +88,16 @@ def check_answer():
         
     # 再次計算正確答案來比對
     if quiz_type == 'vocabulary':
-        correct_answer = row['definition']
+        correct_answer = row['chinese_meaning']
     else:
-        if row['grammar_type'] == '現在完成式':
-            correct_answer = row['verb_vpp']
-        elif row['grammar_type'] == '過去進行式':
-            correct_answer = f"was {row['verb_ing']}"
-        elif row['grammar_type'] == '未來完成式':
-            correct_answer = f"will have {row['verb_vpp']}"
-        else:
-            correct_answer = row['word']
+        correct_answer = row['correct_answer']
             
     is_correct = (correct_answer.strip() == user_answer.strip())
     
     return jsonify({
         'correct': is_correct,
         'correct_answer': correct_answer,
-        'analysis': row['analysis']
+        'analysis': row['detailed_analysis']
     })
 
 if __name__ == '__main__':
