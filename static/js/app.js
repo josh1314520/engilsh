@@ -88,9 +88,12 @@ function displayQuestion(q) {
 
     // 顯示類別標籤與提示文字
     const levelVal = document.getElementById("filterLevel").value;
-    document.getElementById("questionCategory").innerText = levelVal.toUpperCase();
-    document.getElementById("questionPrompt").innerText = `請選出英文單字 [ ${q.word} ] 的正確中文意思：`;
-    document.getElementById("questionDetail").innerText = q.word;
+    const typeLabel = q.quiz_type === 'vocabulary' ? '單字測驗' : '文法時態';
+    document.getElementById("questionCategory").innerText = `${levelVal.toUpperCase()} - ${typeLabel}`;
+    document.getElementById("questionPrompt").innerText = "請選出最適合的選項完成題目：";
+    
+    // 使用 innerHTML 以便正常渲染文法題的 <br> 標籤
+    document.getElementById("questionDetail").innerHTML = q.question;
 
     // 渲染選項按鈕
     const optionsGrid = document.getElementById("optionsGrid");
@@ -120,7 +123,7 @@ async function selectOption(selectedOpt, wordId, selectedBtn) {
     buttons.forEach(btn => btn.disabled = true);
 
     try {
-        // 呼叫 API 2 驗證答案
+        // 呼叫 API 2 驗證答案，傳入 id, answer, quiz_type
         const checkRes = await fetch('/api/check_answer', {
             method: 'POST',
             headers: {
@@ -128,7 +131,8 @@ async function selectOption(selectedOpt, wordId, selectedBtn) {
             },
             body: JSON.stringify({
                 id: wordId,
-                answer: selectedOpt
+                answer: selectedOpt,
+                quiz_type: currentQuestion.quiz_type
             })
         });
 
@@ -233,8 +237,9 @@ async function selectOption(selectedOpt, wordId, selectedBtn) {
             feedbackTitle.innerText = "回答錯誤！勇者受到了傷害。";
         }
 
-        // 顯示解析內容
-        feedbackAnalysis.innerHTML = `<strong>正確答案為：${escapeHtml(correctOpt)}</strong><br><br>${escapeHtml(analysis)}`;
+        // 顯示解析內容 (將換行字元 \n 改成網頁換行標籤 <br>)
+        const formattedAnalysis = escapeHtml(analysis).replace(/\n/g, '<br>');
+        feedbackAnalysis.innerHTML = `<strong>正確答案為：${escapeHtml(correctOpt)}</strong><br><br>${formattedAnalysis}`;
         feedbackPanel.style.display = "block";
 
         // 更新面板數據
