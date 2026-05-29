@@ -59,7 +59,7 @@ async function loadNewQuestion() {
     promptText.innerText = "正在召喚怪物與題庫中...";
 
     try {
-        const url = `/api/get_question?level=${levelVal}`;
+        const url = `/api/get_question?level=${levelVal}&_=${Date.now()}`;
         const res = await fetch(url);
         
         if (res.status === 404) {
