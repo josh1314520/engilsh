@@ -10,7 +10,7 @@ DB_NAME = 'english_hero.db'
 
 def get_db_connection():
     conn = sqlite3.connect(DB_NAME)
-    conn.row_factory = sqlite3.Row
+    conn.row_factory = sqlite3.Row  # 讓查詢結果可以像字典一樣用欄位名讀取
     return conn
 
 # 1. 頁面路由：渲染主頁
@@ -18,7 +18,62 @@ def get_db_connection():
 def index():
     return render_template('index.html')
 
-# 2. 隨機取得題目 API
+# ==========================================
+# 體驗/作業規定 API (從您提供的 main.py 整合)
+# ==========================================
+
+# API 1：隨機取得該難度的單字
+@app.route('/api/get_question')
+def get_question():
+    level = request.args.get('level', 'Elementary')
+    conn = get_db_connection()
+    
+    # 根據難度隨機撈取一筆單字
+    row = conn.execute(
+        'SELECT * FROM words WHERE level = ? ORDER BY RANDOM() LIMIT 1', 
+        (level,)
+    ).fetchone()
+    conn.close()
+    
+    if not row:
+        return jsonify({'error': '該難度目前沒有單字資料'}), 404
+        
+    # 把正確答案與三個錯誤答案混在一起打亂
+    options = [row['definition'], row['option1'], row['option2'], row['option3']]
+    random.shuffle(options)
+    
+    return jsonify({
+        'id': row['id'],
+        'word': row['word'],
+        'options': options
+    })
+
+# API 2：驗證答案，如果錯了就回傳解析
+@app.route('/api/check_answer', methods=['POST'])
+def check_answer():
+    data = request.json
+    word_id = data.get('id')
+    user_answer = data.get('answer')
+    
+    conn = get_db_connection()
+    row = conn.execute('SELECT * FROM words WHERE id = ?', (word_id,)).fetchone()
+    conn.close()
+    
+    if not row:
+        return jsonify({'error': '找不到該單字'}), 404
+        
+    is_correct = (row['definition'] == user_answer)
+    
+    return jsonify({
+        'correct': is_correct,
+        'correct_answer': row['definition'],
+        'analysis': row['analysis']  # 無論對錯都回傳
+    })
+
+# ==========================================
+# 特訓競技場遊戲與管理後端 API (確保完整網頁運作)
+# ==========================================
+
 @app.route('/api/questions', methods=['GET'])
 def get_questions():
     mode = request.args.get('mode', 'mixed')  # vocab, grammar, mixed
@@ -85,7 +140,7 @@ def get_questions():
     random.shuffle(questions)
     return jsonify(questions[:limit])
 
-# 3. 單字庫管理 API (CRUD)
+# 單字庫管理 API (CRUD)
 @app.route('/api/words', methods=['GET'])
 def list_words():
     with get_db_connection() as conn:
@@ -126,7 +181,7 @@ def delete_word(word_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 4. 文法題庫管理 API (CRUD)
+# 文法題庫管理 API (CRUD)
 @app.route('/api/grammar', methods=['GET'])
 def list_grammar():
     with get_db_connection() as conn:
@@ -167,7 +222,7 @@ def delete_grammar(q_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# 5. 學習數據 API
+# 學習數據 API
 @app.route('/api/stats', methods=['GET'])
 def get_stats():
     with get_db_connection() as conn:
@@ -195,4 +250,4 @@ def get_stats():
     })
 
 if __name__ == '__main__':
-    app.run(debug=True, host='127.0.0.1', port=5000)
+    app.run(debug=True, port=5000)
